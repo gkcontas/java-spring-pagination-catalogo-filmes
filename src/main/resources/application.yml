@@ -1,0 +1,42 @@
+spring:
+  application:
+    name: pagination-api
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/movies
+    username: movies
+    password: movies
+    hikari:
+      maximum-pool-size: 10
+
+  jpa:
+    # Disabled on purpose: with open-in-view the persistence context stays open during
+    # view rendering, which hides lazy loading problems (exactly the N+1 this project
+    # is meant to expose). Keeping it off makes them fail loudly instead.
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          batch_size: 50
+        # Needed by the collection-fetch-trap endpoint and by the N+1 tests, which assert
+        # on how many statements/entities Hibernate actually produced. It costs a little
+        # overhead, so in a real service it would be enabled per environment.
+        generate_statistics: true
+
+  flyway:
+    enabled: true
+
+app:
+  pagination:
+    default-page-size: 20
+    max-page-size: 100
+
+logging:
+  level:
+    # Set to DEBUG to watch the actual SQL each strategy produces.
+    org.hibernate.SQL: INFO
+    # generate_statistics makes this listener dump a metrics block after every session,
+    # which drowns out everything else. The statistics themselves stay available.
+    org.hibernate.engine.internal.StatisticalLoggingSessionEventListener: WARN
